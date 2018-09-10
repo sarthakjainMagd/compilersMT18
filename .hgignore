@@ -6,12 +6,9 @@ syntax:glob
 *~
 .git
 .gitignore
-keiko/interp.c
-keiko/keiko.h
 keiko/obx-t.a
 keiko/pplink
 keiko/ppx
-keiko/template.c
 lab1/a.k
 lab1/a.test
 lab1/a.x
