@@ -190,6 +190,9 @@ checkdef(globcheck, value *, p,, p != NULL, E_GLOB)
 #define slide(nargs) sp += HEAD + nargs; cond_break();
 
 
+#define casejump(x, n0)                                  {                                                       int n = n0;                                     pc0 = pc; pc += 4*n;                            while (n > 0) {                                 if (x == get2(pc0)) {                   jump(get2(pc0+2));                      break;                          }                                       pc0 += 4; n--;                          }                                               }
+
+
 
 /* interp -- main loop of the interpreter */
 void interp(value *sp0) {
@@ -462,9 +465,9 @@ void interp(value *sp0) {
           &&lbl_RETURN,
           &&lbl_LNUM_2,
           &&lbl_BREAK_2,
-          &&lbl_ILLEGAL,
-          &&lbl_ILLEGAL,
-          &&lbl_ILLEGAL,
+          &&lbl_CASEJUMP_1,
+          &&lbl_PACK,
+          &&lbl_UNPACK,
           &&lbl_ILLEGAL,
      };
 #endif
@@ -1626,6 +1629,22 @@ void interp(value *sp0) {
      debug_break(cp, bp, pc0, "break");
 #endif
  }
+               NEXT;
+
+          ACTION(CASEJUMP_1)
+               pc = pc0 + 2;
+               sp += 1; { casejump(sp[-1].i, get1(pc0+1)); }
+               NEXT;
+
+          ACTION(PACK)
+               pc = pc0 + 1;
+               sp++; sp[0].i = pack(valptr(sp[-1]), pointer(sp[0]));
+               NEXT;
+
+          ACTION(UNPACK)
+               pc = pc0 + 1;
+               { sp--; sp[0].a = address(getcode(sp[1].i)); 
+                                   sp[1].a = address(getenvt(sp[1].i)); }
                NEXT;
 
 
