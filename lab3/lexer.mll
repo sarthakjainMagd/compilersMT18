@@ -27,35 +27,38 @@ let lookup s = try Hashtbl.find kwtable s with Not_found -> IDENT s
 let lineno = ref 1
 }
 
-rule token = parse
-  ['A'-'Z''a'-'z']['A'-'Z''a'-'z''0'-'9''_']* as s
+rule token =
+  parse
+     ['A'-'Z''a'-'z']['A'-'Z''a'-'z''0'-'9''_']* as s
                         { lookup s }
-| ['0'-'9']+ as s       { NUMBER (int_of_string s) }
-| "="                   { RELOP Eq }
-| "+"                   { ADDOP Plus }
-| "-"                   { MINUS }
-| "*"                   { MULOP Times }
-| "<"                   { RELOP Lt }
-| ">"                   { RELOP Gt }
-| "<>"                  { RELOP Neq }
-| "<="                  { RELOP Leq }
-| ">="                  { RELOP Geq }
-| "("                   { LPAR }
-| ")"                   { RPAR }
-| ","                   { COMMA }
-| ";"                   { SEMI }
-| "."                   { DOT }
-| ":="                  { ASSIGN }
-| [' ''\t']+            { token lexbuf }
-| "(*"                  { comment lexbuf; token lexbuf }
-| '\n'                  { incr lineno; Source.note_line !lineno lexbuf;
+    | ['0'-'9']+ as s   { NUMBER (int_of_string s) }
+    | "="               { RELOP Eq }
+    | "+"               { ADDOP Plus }
+    | "-"               { MINUS }
+    | "*"               { MULOP Times }
+    | "<"               { RELOP Lt }
+    | ">"               { RELOP Gt }
+    | "<>"              { RELOP Neq }
+    | "<="              { RELOP Leq }
+    | ">="              { RELOP Geq }
+    | "("               { LPAR }
+    | ")"               { RPAR }
+    | ","               { COMMA }
+    | ";"               { SEMI }
+    | "."               { DOT }
+    | ":="              { ASSIGN }
+    | [' ''\t']+        { token lexbuf }
+    | "(*"              { comment lexbuf; token lexbuf }
+    | "\r"              { token lexbuf }
+    | "\n"              { incr lineno; Source.note_line !lineno lexbuf;
                           token lexbuf }
-| _                     { BADTOK }
-| eof                   { EOF }
+    | _                 { BADTOK }
+    | eof               { EOF }
 
-and comment = parse
-  "*)"                  { () }
-| "\n"                  { incr lineno; Source.note_line !lineno lexbuf;
+and comment =
+  parse
+      "*)"              { () }
+    | "\n"              { incr lineno; Source.note_line !lineno lexbuf;
                           comment lexbuf }
-| _                     { comment lexbuf }
-| eof                   { () }
+    | _                 { comment lexbuf }
+    | eof               { () }

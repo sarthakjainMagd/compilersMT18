@@ -54,6 +54,7 @@ rule token =
     | ":="              { ASSIGN }
     | [' ''\t']+        { token lexbuf }
     | "(*"              { comment lexbuf; token lexbuf }
+    | "\r"              { token lexbuf }
     | "\n"              { incr lineno; Source.note_line !lineno lexbuf;
                           token lexbuf }
     | _                 { BADTOK }

@@ -68,46 +68,48 @@ let qq = '"'
 let notq = [^'\'']
 let notqq = [^'"']
 
-rule token = parse
-  letter (letter | digit | '_')* as s
-                                { lookup s }
-| digit+ as s                   { NUMBER (int_of_string s) }
-| q (notq as c) q               { CHAR c }
-| q q q q                       { CHAR '\'' }
-| qq ((notqq | qq qq)* as s) qq { get_string s }
-| ";"                           { SEMI }
-| "."                           { DOT }
-| "|"                           { VBAR }
-| ":"                           { COLON }
-| "^"                           { ARROW }
-| "("                           { LPAR }
-| ")"                           { RPAR }
-| ","                           { COMMA }
-| "["                           { SUB }
-| "]"                           { BUS }
-| "="                           { EQUAL }
-| "+"                           { ADDOP Plus }
-| "-"                           { MINUS }
-| "*"                           { MULOP Times }
-| "<"                           { RELOP Lt }
-| ">"                           { RELOP Gt }
-| "<>"                          { RELOP Neq }
-| "<="                          { RELOP Leq }
-| ">="                          { RELOP Geq }
-| ":="                          { ASSIGN }
-| [' ''\t']+                    { token lexbuf }
-| "(*"                          { comment lexbuf; token lexbuf }
-| "\n"                          { next_line lexbuf; token lexbuf }
-| _                             { BADTOK }
-| eof                           { err_message "unexpected end of file" 
-                                    [] !lineno; 
-                                  exit 1 }
+rule token = 
+  parse
+      letter (letter | digit | '_')* as s
+                        { lookup s }
+    | digit+ as s       { NUMBER (int_of_string s) }
+    | q (notq as c) q   { CHAR c }
+    | q q q q           { CHAR '\'' }
+    | qq ((notqq | qq qq)* as s) qq     
+                        { get_string s }
+    | ";"               { SEMI }
+    | "."               { DOT }
+    | "|"               { VBAR }
+    | ":"               { COLON }
+    | "^"               { ARROW }
+    | "("               { LPAR }
+    | ")"               { RPAR }
+    | ","               { COMMA }
+    | "["               { SUB }
+    | "]"               { BUS }
+    | "="               { EQUAL }
+    | "+"               { ADDOP Plus }
+    | "-"               { MINUS }
+    | "*"               { MULOP Times }
+    | "<"               { RELOP Lt }
+    | ">"               { RELOP Gt }
+    | "<>"              { RELOP Neq }
+    | "<="              { RELOP Leq }
+    | ">="              { RELOP Geq }
+    | ":="              { ASSIGN }
+    | [' ''\t']+        { token lexbuf }
+    | "(*"              { comment lexbuf; token lexbuf }
+    | "\r"              { token lexbuf }
+    | "\n"              { next_line lexbuf; token lexbuf }
+    | _                 { BADTOK }
+    | eof               { err_message "unexpected end of file" [] !lineno; 
+                          exit 1 }
 
-and comment = parse
-  "*)"                          { () }
-| "\n"                          { next_line lexbuf; comment lexbuf }
-| _                             { comment lexbuf }
-| eof                           { err_message "end of file in comment" 
-                                    [] !lineno; 
-                                  exit 1 }
+and comment = 
+  parse
+      "*)"              { () }
+    | "\n"              { next_line lexbuf; comment lexbuf }
+    | _                 { comment lexbuf }
+    | eof               { err_message "end of file in comment" [] !lineno; 
+                          exit 1 }
 
