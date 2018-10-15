@@ -20,8 +20,6 @@ rule token =
     | "*"               { TIMES }
     | "/"               { DIVIDE }
     | [' ''\t']+        { token lexbuf }
-    | "\r"              { comment lexbuf }
-    | "\n"              { token lexbuf }
     | _                 { BADTOK }
     | eof               { EOF }
 
