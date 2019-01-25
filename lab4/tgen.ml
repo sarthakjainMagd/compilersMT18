@@ -250,12 +250,13 @@ let gen_jtable sel table0 deflab =
   end
 
 (* |gen_stmt| -- generate code for a statement *)
-let rec gen_stmt s = 
+let rec gen_stmt s continuelab insideloop = 
   let code =
     match s.s_guts with
         Skip -> <NOP>
+      | Continue -> if (not (insideloop)) then failwith " 'continue' used outside a loop!" else <JUMP continuelab >
 
-      | Seq ss -> <SEQ, @(List.map gen_stmt ss)>
+      | Seq ss -> <SEQ, @(List.map (fun x -> gen_stmt x continuelab insideloop) ss)>
 
       | Assign (v, e) ->
           if scalar v.e_type || is_pointer v.e_type then begin
@@ -280,10 +281,10 @@ let rec gen_stmt s =
           <SEQ,
             gen_cond test l1 l2,
             <LABEL l1>,
-            gen_stmt thenpt,
+            gen_stmt thenpt continuelab insideloop,
             <JUMP l3>,
             <LABEL l2>,
-            gen_stmt elsept,
+            gen_stmt elsept continuelab insideloop,
             <LABEL l3>>
 
       | WhileStmt (test, body) ->
@@ -292,9 +293,10 @@ let rec gen_stmt s =
           let l1 = label () and l2 = label () and l3 = label() in
           <SEQ,
             <LABEL l1>,
+	    <LABEL continuelab>,
             gen_cond test l2 l3,
             <LABEL l2>,
-            gen_stmt body,
+            gen_stmt body continuelab true,
             <JUMP l1>,
             <LABEL l3>>
 
@@ -302,7 +304,8 @@ let rec gen_stmt s =
           let l1 = label () and l2 = label () in
           <SEQ,
             <LABEL l1>,
-            gen_stmt body, 
+            gen_stmt body continuelab true,
+	    <LABEL continuelab>, 
             gen_cond test l2 l1,
             <LABEL l2>>
 
@@ -316,7 +319,8 @@ let rec gen_stmt s =
             <STOREW, gen_expr hi, address tmp>,
             <LABEL l1>,
             <JUMPC (Gt, l2), gen_expr var, <LOADW, address tmp>>,
-            gen_stmt body,
+            gen_stmt body continuelab true,
+	    <LABEL continuelab>,
             <STOREW, <BINOP Plus, gen_expr var, <CONST 1>>, gen_addr var>,
             <JUMP l1>,
             <LABEL l2>>
@@ -330,13 +334,13 @@ let rec gen_stmt s =
           let gen_case lab (v, body) =
             <SEQ,
               <LABEL lab>,
-              gen_stmt body,
+              gen_stmt body continuelab insideloop,
               <JUMP donelab>> in
           <SEQ,
             gen_jtable (gen_expr sel) table deflab,
             <SEQ, @(List.map2 gen_case labs arms)>,
             <LABEL deflab>,
-            gen_stmt deflt,
+            gen_stmt deflt continuelab insideloop,
             <LABEL donelab>> in
 
    (* Label the code with a line number *)
@@ -369,8 +373,8 @@ let show label code =
 let do_proc lab lev nargs (Block (_, body, fsize, nregv)) =
   level := lev+1;
   retlab := label ();
-  let code0 = 
-    show "Initial code" (Optree.canon <SEQ, gen_stmt body, <LABEL !retlab>>) in
+  let code0 = let continuelab = label() in 
+    show "Initial code" (Optree.canon <SEQ, gen_stmt body continuelab false, <LABEL !retlab>>) in
   Regs.init ();
   let code1 = if !optlevel < 1 then code0 else
       show "After simplification" (Jumpopt.optimise (Simp.optimise code0)) in

@@ -15,6 +15,8 @@ open Mach
 (* Nesting level of current procedure *)
 let level = ref 0
 
+
+
 (* Return type of current procedure *)
 let return_type = ref voidtype
 
@@ -224,7 +226,7 @@ and check_arg formal arg env =
 
 (* |check_libcall| -- check call to a library procedure *)
 and check_libcall q args env v =
-  (* |q.q_nargs = -1| if the lib proc has a variable number of arguments;
+  (* |q.q_nargs = -1| if the lib proc has a varbiable number of arguments;
      otherwise it is the number of arguments.  |q.q_argtypes = []| if the
      argument types can vary; otherwise it is a list of arg types. *)
   if q.q_nargs >= 0 && List.length args <> q.q_nargs then
@@ -297,6 +299,7 @@ let rec check_stmt s env alloc =
   err_line := s.s_line;
   match s.s_guts with
       Skip -> ()
+    | Continue -> ()
 
     | Seq ss ->
         List.iter (fun s1 -> check_stmt s1 env alloc) ss
@@ -340,10 +343,11 @@ let rec check_stmt s env alloc =
         let ct = check_expr cond env in
         if not (same_type ct boolean) then
           sem_error "type mismatch in while statement" [];
+	
         check_stmt body env alloc
 
-    | RepeatStmt (body, test) ->
-        check_stmt body env alloc;
+    | RepeatStmt (body, test) -> 
+        check_stmt body env alloc; 
         let ct = check_expr test env in
         if not (same_type ct boolean) then
           sem_error "type mismatch in repeat statement" []
@@ -355,7 +359,7 @@ let rec check_stmt s env alloc =
         if not (same_type vt integer) || not (same_type lot integer)
             || not (same_type hit integer) then
           sem_error "type mismatch in for statement" [];
-        check_var var false;
+        check_var var false; 
         check_stmt body env alloc;
 
         (* Allocate space for hidden variable.  In the code, this will

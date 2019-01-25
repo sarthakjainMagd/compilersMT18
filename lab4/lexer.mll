@@ -14,7 +14,7 @@ let lineno = ref 1                      (* Current line in input file *)
 let symtable = 
   Util.make_hash 100
     [ ("array", ARRAY); ("begin", BEGIN);
-      ("const", CONST); ("do", DO); ("if", IF ); ("else", ELSE); 
+      ("const", CONST); ("continue", CONTINUE); ("do", DO); ("if", IF ); ("else", ELSE); 
       ("end", END); ("of", OF); ("proc", PROC); ("record", RECORD);
       ("return", RETURN); ("then", THEN); ("to", TO);
       ("type", TYPE); ("var", VAR); ("while", WHILE);
@@ -22,7 +22,7 @@ let symtable =
       ("repeat", REPEAT); ("until", UNTIL); ("for", FOR);
       ("elsif", ELSIF); ("case", CASE);
       ("and", MULOP And); ("div", MULOP Div); ("or", ADDOP Or);
-      ("not", NOT); ("mod", MULOP Mod) ]
+      ("not", NOT); ("mod", MULOP Mod)]
 
 let lookup s =
   try Hashtbl.find symtable s with

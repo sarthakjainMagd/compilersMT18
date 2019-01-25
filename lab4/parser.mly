@@ -19,7 +19,7 @@ open Tree
 %token                  BADTOK IMPOSSIBLE
 
 /* keywords */
-%token                  ARRAY BEGIN CONST DO ELSE END IF OF
+%token                  ARRAY BEGIN CONST CONTINUE DO ELSE END IF OF
 %token                  PROC RECORD RETURN THEN TO TYPE
 %token                  VAR WHILE NOT POINTER NIL
 %token                  REPEAT UNTIL FOR ELSIF CASE
@@ -110,6 +110,7 @@ line :
 
 stmt1 :
     /* empty */                         { Skip }
+  | CONTINUE				{Continue}
   | variable ASSIGN expr                { Assign ($1, $3) }
   | name actuals                        { ProcCall ($1, $2) }
   | RETURN expr_opt                     { Return $2 }

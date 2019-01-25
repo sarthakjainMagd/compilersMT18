@@ -45,6 +45,7 @@ and stmt =
 
 and stmt_guts =
     Skip 
+  | Continue
   | Seq of stmt list
   | Assign of expr * expr
   | ProcCall of name * expr list 
